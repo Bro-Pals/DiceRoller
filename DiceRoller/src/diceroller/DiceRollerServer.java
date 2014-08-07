@@ -4,6 +4,7 @@
  */
 package diceroller;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
@@ -84,12 +85,77 @@ public class DiceRollerServer extends ServerSocket {
         }
     }
     
+    private enum TokenTag {
+        NUMBER, D, PLUS, MINUS;
+    }
+    
+    private class Token {
+        
+        TokenTag tag;
+        String contents;
+        
+        public Token(TokenTag tag, String contents) {
+            this.tag = tag;
+            this.contents = contents;
+        }
+        
+        @Override
+        public String toString() {
+            return this.contents;
+        }
+    }
+    
     public void handleRequest(DiceHandRequest request) {
         DiceHand parsedHand = null;
         DiceRoller.print("Got a dice role request");
-        parsedHand = new DiceHand(request.getInput(), request.getName(), 0, new Die[]{new Die(20)});
+        String input = request.getInput();
         
+        ArrayList<Token> tokens = new ArrayList<>();
+        System.out.println("Stared processing print stuff. \nInput:\n"+input);
+        for (int p=0; p<input.length(); p++) {
+            boolean gettingNumbers = true;
+            int size = 0;
+            String testArea = null;
+            do {
+                testArea = input.substring(p, p + size + 1);
+                try {
+                    Integer.valueOf(testArea);
+                } catch(NumberFormatException nfe) {
+                    System.out.println(nfe.toString());
+                    gettingNumbers = false;
+                }
+                if (gettingNumbers) {
+                    size++;
+                } else {
+                    if (size > 0) {
+                        tokens.add(new Token(TokenTag.NUMBER, input.substring(p, p + size)));
+                        p = p + size;
+                    }
+                }
+            } while (gettingNumbers);
+            
+            if (p < input.length()) {
+                char on = input.charAt(p);
+                if (on == 'd') {
+                    tokens.add(new DiceRollerServer.Token(DiceRollerServer.TokenTag.D, "d"));
+                } else if (on == '+') {
+                    tokens.add(new DiceRollerServer.Token(DiceRollerServer.TokenTag.PLUS, "+"));
+                } else if (on == '-') {
+                    tokens.add(new DiceRollerServer.Token(DiceRollerServer.TokenTag.MINUS, "-"));
+                } else {
+                    System.err.println("Unexpected character at index "+p);
+                }
+            }
+        }
+        
+        System.out.println("Tokens found: ");
+        for (int i=0; i<tokens.size(); i++) {
+            System.out.println(i + " : " + tokens.get(i).toString());
+        }
+        
+        parsedHand = new DiceHand(input, request.getName(), 0, new Die[]{new Die(20)});
         broadcastDiceHandOutput(parsedHand);
+        System.out.println("Done handling input");
     }
     
     private void broadcastDiceHandOutput(DiceHand hand) {
