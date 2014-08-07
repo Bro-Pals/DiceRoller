@@ -115,9 +115,13 @@ public class DiceRollerServer extends ServerSocket {
         for (int p=0; p<input.length(); p++) {
             boolean gettingNumbers = true;
             int size = 0;
-            String testArea = null;
+            String testArea = "";
             do {
-                testArea = input.substring(p, p + size + 1);
+                if (p + size < input.length()) {
+                    testArea = input.substring(p, p + size + 1);
+                } else {
+                    testArea = "";
+                }
                 try {
                     Integer.valueOf(testArea);
                 } catch(NumberFormatException nfe) {
