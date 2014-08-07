@@ -34,7 +34,11 @@ public class DiceRollerClient {
             final ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
             final ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
             
-            final String name = JOptionPane.showInputDialog(null, "Enter a Username", "Need a Username", JOptionPane.PLAIN_MESSAGE);
+            String nn;
+            while((nn = JOptionPane.showInputDialog(null, "Enter a Username", "Need a Username", JOptionPane.PLAIN_MESSAGE)).equals("")) {
+                
+            }
+            final String name = nn;
             
             JFrame frame = new JFrame();
             frame.setSize(400, 300);
