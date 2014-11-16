@@ -58,6 +58,7 @@ public class DiceRoller {
             serverFrame.setLocationRelativeTo(null);
             serverFrame.setVisible(true);
             ///Starting the server
+            server.handleRequest(new DiceHandRequest("Bob", "2d20"));
             DiceRoller.print("Created server");
             server.printInfo();
             server.listenForClients();

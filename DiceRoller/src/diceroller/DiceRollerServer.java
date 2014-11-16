@@ -86,7 +86,19 @@ public class DiceRollerServer extends ServerSocket {
     }
     
     private enum TokenTag {
-        NUMBER, D, PLUS, MINUS;
+        NUMBER, D, PLUS, MINUS, ENDSYMBOL; // D is just the chracter 'd'
+    }
+    
+    private enum PSymbol {
+        E, V, X, K, // Nonterminals: Start symbol E, value V, X, and K
+        /**Character d terminal*/
+        d, 
+        /**Modifier terminal*/
+        m,
+        /**Plus sign terminal*/
+        p, 
+        /**Subtraction sign / minus sign terminal*/
+        s; // Terminals: dice roll, modifier, plus, and minus (subtraction)
     }
     
     private class Token {
@@ -140,7 +152,7 @@ public class DiceRollerServer extends ServerSocket {
             
             if (p < input.length()) {
                 char on = input.charAt(p);
-                if (on == 'd') {
+                if (on == 'd' || on == 'D') {
                     tokens.add(new DiceRollerServer.Token(DiceRollerServer.TokenTag.D, "d"));
                 } else if (on == '+') {
                     tokens.add(new DiceRollerServer.Token(DiceRollerServer.TokenTag.PLUS, "+"));
@@ -156,6 +168,135 @@ public class DiceRollerServer extends ServerSocket {
         for (int i=0; i<tokens.size(); i++) {
             System.out.println(i + " : " + tokens.get(i).toString());
         }
+        //** Time to start parsing the tokens!
+        
+        // add on the end symbol so we know when the symbol ends
+        tokens.add(new Token(TokenTag.ENDSYMBOL, "$")); 
+        
+        ArrayList<PSymbol> stack = new ArrayList<>();
+        stack.add(PSymbol.E); // stack starts with the start symbol
+        
+        String errorMsg = null;
+        // while there is no error or while the token on the top of the stack is
+        // not the ending symbol.
+        int tokenOn = 0;
+        while (errorMsg == null) {
+            switch (stack.get(0)) {
+                case E: // start symbol and nonterminal
+                    switch(tokens.get(tokenOn).tag) {
+                        case NUMBER:
+                            stack.remove(0);
+                            stack.add(0, PSymbol.X);
+                            stack.add(0, PSymbol.V); // replace E with VX
+                            break;
+                        case ENDSYMBOL:
+                            stack.remove(0);
+                            stack.add(0, PSymbol.X); // replace E with X
+                            break;
+                        default:
+                            errorMsg = "Expected number by \"" + tokens.get(tokenOn).contents + "\"";
+                            break;
+                    }
+                    break;
+                case X: // nonterminal
+                    switch(tokens.get(tokenOn).tag) {
+                        case PLUS:
+                            stack.remove(0);
+                            stack.add(0, PSymbol.E);
+                            stack.add(0, PSymbol.p); // add '+'E
+                            break;
+                        case MINUS:
+                            stack.remove(0);
+                            stack.add(0, PSymbol.E);
+                            stack.add(0, PSymbol.s); // add '-'E
+                            break;
+                        case ENDSYMBOL:
+                            errorMsg = "This is a valid string!";
+                            break;
+                        default:
+                            errorMsg = "Did not expect another number by \"" + tokens.get(tokenOn).contents + "\"";
+                            break;
+                    }
+                    break;
+                case V:
+                    switch(tokens.get(tokenOn).tag) {
+                        case NUMBER:
+                            stack.remove(0);
+                            stack.add(0, PSymbol.K);
+                            stack.add(0, PSymbol.m); // add 'number'K
+                            break;
+                        default:
+                            errorMsg = "Expected a number token by \"" + tokens.get(tokenOn).contents + "\"";
+                            break;
+                    }
+                    break;
+                case K:
+                    switch(tokens.get(tokenOn).tag) {
+                        case D:
+                            stack.remove(0);
+                            stack.add(0, PSymbol.m);
+                            stack.add(0, PSymbol.d); // add 'd''number'
+                            break;
+                        case PLUS:
+                        case MINUS:
+                            stack.remove(0); // epsilon
+                            break;
+                        case ENDSYMBOL:
+                            errorMsg = "This is a valid string!";
+                            break;
+                        default:
+                            errorMsg = "Unexpected number token by \"" + tokens.get(tokenOn).contents + "\"";
+                            break;
+                    }
+                    break;
+                case d:
+                    switch(tokens.get(tokenOn).tag) {
+                        case D:
+                            stack.remove(0); // remove from stack
+                            tokenOn++; // advance input
+                            break;
+                        default:
+                            errorMsg = "Expect character D by \"" + tokens.get(tokenOn).contents + "\"";
+                            break;
+                    }
+                    break;
+                case m:
+                    switch(tokens.get(tokenOn).tag) {
+                        case NUMBER:
+                            stack.remove(0);
+                            tokenOn++;
+                            break;
+                        default:
+                            errorMsg = "Expected number by \"" + tokens.get(tokenOn).contents + "\"";
+                            break;
+                    }
+                    break;
+                case p:
+                    switch(tokens.get(tokenOn).tag) {
+                        case PLUS:
+                            stack.remove(0);
+                            tokenOn++;
+                            break;
+                        default:
+                            errorMsg = "Expected plus sign by \"" + tokens.get(tokenOn).contents + "\"";
+                            break;
+                    }
+                    break;
+                case s:
+                    switch(tokens.get(tokenOn).tag) {
+                        case MINUS:
+                            stack.remove(0);
+                            tokenOn++;
+                            break;
+                        default:
+                            errorMsg = "Expected minus sign by \"" + tokens.get(tokenOn).contents + "\"";
+                            break;
+                    }
+                    break;
+            }
+        }
+        System.out.println("Stack: " + stack.toString());
+        System.out.println(errorMsg);
         
         parsedHand = new DiceHand(input, request.getName(), 0, new Die[]{new Die(20)});
         broadcastDiceHandOutput(parsedHand);
