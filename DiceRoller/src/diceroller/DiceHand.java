@@ -4,21 +4,22 @@
  */
 package diceroller;
 
-import java.io.Serializable;
+import java.util.ArrayList;
+
 
 /**
  * A package of information about a dice roll.
  * @author Owner
  */
-public class DiceHand implements Serializable {
+public class DiceHand {
     
-    private Die[] dice;
+    private ArrayList<Die> dice;
     private int modifier;
     private String rollee;
     private int result;
     private String rawInput;
     
-    public DiceHand(String rawInput, String rollee, int modifier, Die[] dice) {
+    public DiceHand(String rawInput, String rollee, int modifier, ArrayList<Die> dice) {
         this.dice = dice;
         this.modifier = modifier;
         this.rollee = rollee;
@@ -26,12 +27,16 @@ public class DiceHand implements Serializable {
         
         this.result = modifier;
         
-        for (int i=0; i<dice.length; i++) {
-            this.result += dice[i].getResult();
+        for (int i=0; i<dice.size(); i++) {
+            if (dice.get(i).getSign()) { // positive or negative?
+                this.result += dice.get(i).getResult();
+            } else {
+                this.result -= dice.get(i).getResult();
+            }
         }
     }
 
-    public Die[] getDice() {
+    public ArrayList<Die> getDice() {
         return dice;
     }
 

@@ -4,9 +4,10 @@
  */
 package diceroller;
 
+import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.Socket;
 
 /**
@@ -16,8 +17,8 @@ import java.net.Socket;
 public class DiceRollerClientHandle implements Runnable {
 
     private Socket socket;
-    private ObjectOutputStream out;
-    private ObjectInputStream in;
+    private PrintWriter out;
+    private BufferedReader in;
     private DiceRollerServer server;
     private Thread threadReference;
     
@@ -27,8 +28,8 @@ public class DiceRollerClientHandle implements Runnable {
         this.out = null;
         this.in = null;
         try {
-            this.out = new ObjectOutputStream(socket.getOutputStream());
-            this.in = new ObjectInputStream(socket.getInputStream());
+            this.out = new PrintWriter(socket.getOutputStream());
+            this.in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         } catch(Exception e) {
             DiceRoller.printErr("Exception in a DiceRollerClientHandle object constructor: " 
                                 + e.toString());
@@ -54,12 +55,13 @@ public class DiceRollerClientHandle implements Runnable {
         }
     }
     
-    public void sendDiceHandOutput(DiceHand hand) throws IOException {
+    public void sendDiceHandOutput(DiceHand hand) {
         if (out != null && !socket.isClosed()) {
             try {
-                 out.writeObject((Object)hand);
+                 // send the clients the parser readable dice hand
+                 out.println(DiceHandParser.translateToString(hand));
                  out.flush();
-            } catch(IOException ioe) {
+            } catch(Exception ioe) {
                 DiceRoller.printErr("Error while sending dice output: " + ioe.toString());
             }
         } else {
@@ -70,11 +72,17 @@ public class DiceRollerClientHandle implements Runnable {
     @Override
     public void run() {
         try {
-            Object request = null;
-            while ( !socket.isClosed() && (request = in.readObject()) != null) {
+            String request = null;
+            while ( !socket.isClosed() && (request = in.readLine()) != null) {
                 if (request != null) {
-                    if (request instanceof DiceHandRequest) {
-                        server.handleRequest((DiceHandRequest)request);
+                    if (request instanceof String) {
+                        System.out.println("Got input: " + request);
+                        // dice server initially gets human readable formats
+                        String[] parts = request.split("&");
+                        DiceHand receivedHand = DiceHandParser.humanFormatToDiceHand(parts[1], parts[0]);
+                        if (receivedHand != null) {
+                            server.broadcastDiceHandOutput(receivedHand);
+                        }
                     } else {
                         server.disconnectClient(this);
                     }
