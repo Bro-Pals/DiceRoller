@@ -17,13 +17,14 @@ import java.util.ArrayList;
  * The server for the DiceRoller program.
  * @author Owner
  */
-public class DiceRollerServer extends ServerSocket {
+public class DiceRollerServer {
     
     private ArrayList<DiceRollerClientHandle> clients;
     private volatile boolean listening;
+    private ServerSocket serverSocket;
     
     public DiceRollerServer(int port) throws IOException {
-        super(port);
+        serverSocket = new ServerSocket(port);
         clients = new ArrayList<>();
         listening = false;
     }
@@ -57,19 +58,17 @@ public class DiceRollerServer extends ServerSocket {
         Socket nextSocket = null;
         listening = true;
         try {
-            this.setSoTimeout(1000);
+            serverSocket.setSoTimeout(1000);
             while ( listening ) {
                 nextSocket = null;
                 try {
-                    nextSocket = accept();
-                } catch (SocketTimeoutException ste) {
-                    //Gonna try again in a tick
-                }
-                if (nextSocket!=null) {
+                    nextSocket = serverSocket.accept();
                     DiceRollerClientHandle handle = new DiceRollerClientHandle(this, nextSocket);
                     handle.startOnThread();
                     clients.add(handle);
                     DiceRoller.print("Added a new client!");
+                } catch (SocketTimeoutException ste) {
+                    //Gonna try again in a tick
                 }
             }
         } catch(Exception e) {
@@ -79,7 +78,7 @@ public class DiceRollerServer extends ServerSocket {
         DiceRoller.print("Closing server");
         disconnectAll();
         try {
-            close();
+            serverSocket.close();
         } catch(Exception e) {
             DiceRoller.printErr("Error closing server");
         }

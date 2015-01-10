@@ -52,15 +52,17 @@ public class DiceHandCanvas extends Canvas {
                 int boxForDiceWidth = width - (3*PADDING) - 120;
                 int boxForDiceHeight = height - (2*PADDING) - 110;
                 int columnsOfDice = 1, rowsOfDice = 1;
+                int maxPerRC = 3;
                 if (boxForDiceWidth > boxForDiceHeight) {
-                    columnsOfDice = displayHand.getDice().size() >= 5 ? 
-                        5 : displayHand.getDice().size(); // 5 dice every row max
-                    rowsOfDice = 1 + (displayHand.getDice().size() / 5);
+                    columnsOfDice = displayHand.getDice().size() < maxPerRC ? 
+                            displayHand.getDice().size() : maxPerRC;
+                    rowsOfDice = 1 + (displayHand.getDice().size() / maxPerRC);
                 } else {
-                    rowsOfDice = displayHand.getDice().size() >= 5 ? 
-                        5 : displayHand.getDice().size(); // 5 dice every row max
-                     columnsOfDice= 1 + (displayHand.getDice().size() / 5);
+                    rowsOfDice = displayHand.getDice().size() < maxPerRC ? 
+                            displayHand.getDice().size() : maxPerRC;
+                    columnsOfDice = 1 + (displayHand.getDice().size() / maxPerRC);
                 }
+                
                 int diceWidth = (boxForDiceWidth-(PADDING * (columnsOfDice-1))) / columnsOfDice;
                 int diceHeight = (boxForDiceHeight-(PADDING * (rowsOfDice-1))) / rowsOfDice;
                 int diceSize = diceWidth;

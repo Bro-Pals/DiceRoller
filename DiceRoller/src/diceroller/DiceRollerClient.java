@@ -8,6 +8,8 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
@@ -19,6 +21,7 @@ import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import javax.imageio.ImageIO;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
@@ -41,6 +44,7 @@ public class DiceRollerClient {
         String ip = JOptionPane.showInputDialog(null, "Enter IP Address of server", "Need IP Address", JOptionPane.PLAIN_MESSAGE);
         try {
             InetAddress address = InetAddress.getByName(ip);
+            System.out.println("Attempting to connect to :" + ip);
             final Socket socket = new Socket(address, DiceRoller.PORT);
             final PrintWriter out = new PrintWriter(socket.getOutputStream());
             final BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -58,6 +62,10 @@ public class DiceRollerClient {
                 }
             }
             final String username = nn;
+            // save the last 10 messages
+            final int historyLimit = 10;
+            final CountWrapper historyPointer = new CountWrapper(-1); // point to which last message you're on
+            final ArrayList<String> sentHistory = new ArrayList<>();
             
             JFrame frame = new JFrame();
             frame.setSize(550, 400);
@@ -81,6 +89,35 @@ public class DiceRollerClient {
             final JTextField textField = new JTextField();
             textField.setPreferredSize(new Dimension(400, 30));
             frame.add(textField, BorderLayout.SOUTH);
+            textField.addKeyListener(new KeyListener() {
+                @Override
+                public void keyPressed(KeyEvent e) {
+                    if (e.getKeyCode() == KeyEvent.VK_UP) {
+                        //System.out.println("UP");
+                        if (historyPointer.getValue() + 1 < sentHistory.size() &&
+                                sentHistory.get(historyPointer.getValue() + 1) != null &&
+                                historyPointer.getValue() < historyLimit - 2) {
+                            historyPointer.increase();
+                        }
+                        if (sentHistory.get(historyPointer.getValue()) != null)
+                            textField.setText(sentHistory.get(historyPointer.getValue()));
+                    } else if (e.getKeyCode() == KeyEvent.VK_DOWN) {
+                       // System.out.println("DOWN");
+                        if (historyPointer.getValue() - 1 >= 0 &&
+                                sentHistory.get(historyPointer.getValue() - 1) != null &&
+                                historyPointer.getValue() > 0) {
+                            historyPointer.decrease();
+                        }
+                        if (sentHistory.get(historyPointer.getValue()) != null)
+                            textField.setText(sentHistory.get(historyPointer.getValue()));
+                    }
+                }
+
+                @Override
+                public void keyReleased(KeyEvent e) {}
+                @Override
+                public void keyTyped(KeyEvent e) {}
+            });
             textField.addActionListener(new ActionListener(){
 
                 @Override
@@ -90,10 +127,15 @@ public class DiceRollerClient {
                             // garuntee no |s will be there beforehand
                             String text = textField.getText().replace("&", "");
                             text = text.replace(" ", ""); // no spaces allowed
+                            sentHistory.add(0, text);
+                            if (sentHistory.size() > historyLimit) {
+                                sentHistory.remove(historyLimit-1); // remove last message
+                            }
                             // send the HUMAN READABLE format to the server
                             out.println(username + "&" + text);
                             out.flush();
                             textField.setText("");
+                            historyPointer.setValue(-1);
                         } catch(Exception ex) {
                             System.err.println("Exception when sending output to the server: " + ex.toString());
                         }

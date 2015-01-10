@@ -61,6 +61,7 @@ public class DiceRoller {
             
             DiceRoller.print("Created server");
             server.printInfo();
+            DiceRoller.print("Port forward to this computer on port " + PORT);
             server.listenForClients();
             DiceRoller.print("Stopped listening for clients");
         } catch(Exception e) {
