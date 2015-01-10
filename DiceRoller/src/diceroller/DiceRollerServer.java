@@ -4,6 +4,9 @@
  */
 package diceroller;
 
+import bropals.lib.simplegame.networking.ClientHandler;
+import bropals.lib.simplegame.networking.Server;
+import bropals.lib.simplegame.networking.ServerMessageHandler;
 import java.io.EOFException;
 import java.io.IOException;
 import java.net.InetAddress;
@@ -14,88 +17,18 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 
 /**
- * The server for the DiceRoller program.
  * @author Owner
  */
-public class DiceRollerServer {
-    
-    private ArrayList<DiceRollerClientHandle> clients;
-    private volatile boolean listening;
-    private ServerSocket serverSocket;
-    
-    public DiceRollerServer(int port) throws IOException {
-        serverSocket = new ServerSocket(port);
-        clients = new ArrayList<>();
-        listening = false;
-    }
-    
-    public void printInfo() {
-        try {
-            DiceRoller.print("Host IP address is \"" + InetAddress.getLocalHost().getHostAddress() + "\"");
-        } catch(UnknownHostException uhe) {
-            DiceRoller.printErr("Unable to get host IP address: " + uhe.toString());
-        }
-    }
-    
-    public void disconnectClient(DiceRollerClientHandle handle) {
-        clients.remove(handle);
-        handle.disconnect();
-        DiceRoller.print("Disconnected a client");
-    }
-    
-    public void disconnectAll() {
-        for (DiceRollerClientHandle client : clients) {
-            disconnectClient(client);
-        }
-        clients.clear();
-    }
-    
-    public void stopListening() {
-        listening = false;
-    }
-    
-    public void listenForClients() {
-        Socket nextSocket = null;
-        listening = true;
-        try {
-            serverSocket.setSoTimeout(1000);
-            while ( listening ) {
-                nextSocket = null;
-                try {
-                    nextSocket = serverSocket.accept();
-                    DiceRollerClientHandle handle = new DiceRollerClientHandle(this, nextSocket);
-                    handle.startOnThread();
-                    clients.add(handle);
-                    DiceRoller.print("Added a new client!");
-                } catch (SocketTimeoutException ste) {
-                    //Gonna try again in a tick
-                }
-            }
-        } catch(Exception e) {
-            DiceRoller.printErr("Exception while listening for clients: " 
-                    + e.toString());
-        }
-        DiceRoller.print("Closing server");
-        disconnectAll();
-        try {
-            serverSocket.close();
-        } catch(Exception e) {
-            DiceRoller.printErr("Error closing server");
-        }
-    }
-    
-    public synchronized void broadcastDiceHandOutput(DiceHand hand) {
-        for (int i=0; i<clients.size(); i++) {
-            try {
-                 if (!clients.get(i).getSocket().isClosed()) {
-                    clients.get(i).sendDiceHandOutput(hand);
-                 } else {
-                     disconnectClient(clients.get(i));
-                 }
-              } catch(Exception e) {
-                DiceRoller.printErr("Error with broadcasting output to a client: " + e.toString());
-            }
-        }
-        DiceRoller.print("Broadcasted dice roll results to " + clients.size() + " clients");
+public class DiceRollerServer implements ServerMessageHandler {
+
+    @Override
+    public void handleMessage(Server server, ClientHandler ch, String string) {
+        // turn the input into a dice hand
+        String[] tokens = string.split("&");
+        DiceHand playerHand = DiceHandParser.humanFormatToDiceHand(tokens[1], tokens[0]);
+        
+        // resend the DiceHand after being parsed back to a string and was rolled
+        String sendOutString = DiceHandParser.translateToString(playerHand);
+        server.broadcastMessage(sendOutString);
     }
 }

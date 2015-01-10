@@ -4,6 +4,7 @@
  */
 package diceroller;
 
+import bropals.lib.simplegame.networking.Server;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import javax.swing.JFrame;
@@ -37,7 +38,7 @@ public class DiceRoller {
     public static void main(String[] args) {
         final JFrame serverFrame = new JFrame("Dice Roller Server Window");
         try {
-            final DiceRollerServer server = new DiceRollerServer(PORT);
+            final Server server = new Server(PORT, new DiceRollerServer());
             ///Making swing gui
             area.setEditable(false);
             area.setLineWrap(true);
@@ -50,7 +51,7 @@ public class DiceRoller {
                 @Override
                 public void windowClosing(WindowEvent e) {
                     DiceRoller.print("Stopping the server");
-                    server.stopListening();
+                    
                 }   
             });
             serverFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
@@ -60,10 +61,9 @@ public class DiceRoller {
             ///Starting the server
             
             DiceRoller.print("Created server");
-            server.printInfo();
             DiceRoller.print("Port forward to this computer on port " + PORT);
-            server.listenForClients();
-            DiceRoller.print("Stopped listening for clients");
+            server.startServer();
+            System.out.println("Done listening");
         } catch(Exception e) {
             DiceRoller.printErr("Exception in the main class; " + e.toString());
         }

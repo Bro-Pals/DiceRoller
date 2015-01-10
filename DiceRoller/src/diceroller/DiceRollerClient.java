@@ -4,6 +4,7 @@
  */
 package diceroller;
 
+import bropals.lib.simplegame.networking.Client;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
@@ -44,10 +45,6 @@ public class DiceRollerClient {
         String ip = JOptionPane.showInputDialog(null, "Enter IP Address of server", "Need IP Address", JOptionPane.PLAIN_MESSAGE);
         try {
             InetAddress address = InetAddress.getByName(ip);
-            System.out.println("Attempting to connect to :" + ip);
-            final Socket socket = new Socket(address, DiceRoller.PORT);
-            final PrintWriter out = new PrintWriter(socket.getOutputStream());
-            final BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             
             String nn = "NO_USERNAME";
             boolean validValue = false;
@@ -76,9 +73,7 @@ public class DiceRollerClient {
                 public void windowClosing(WindowEvent e) {
                     super.windowClosing(e); //To change body of generated methods, choose Tools | Templates.
                     try {
-                        socket.close();
-                        in.close();
-                        out.close();
+                        // stop the server?
                     } catch(Exception ex) {
                         System.err.println("Error when closing the window: " + ex.toString());
                     }
@@ -118,11 +113,23 @@ public class DiceRollerClient {
                 @Override
                 public void keyTyped(KeyEvent e) {}
             });
+            
+            frame.setVisible(true);
+            DiceHandCanvas canvas = new DiceHandCanvas();
+            canvas.setSize(400, 270);
+            frame.add(canvas);
+            if (diceImages != null) {
+                canvas.giveDiceImage(diceImages);
+            }
+
+            final Client rollerClient = new Client(address, DiceRoller.PORT, 
+                new DiceRollerClientHandle(canvas));
+            
             textField.addActionListener(new ActionListener(){
 
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    if (out != null) {
+                    if (rollerClient != null) {
                         try {
                             // garuntee no |s will be there beforehand
                             String text = textField.getText().replace("&", "");
@@ -132,8 +139,8 @@ public class DiceRollerClient {
                                 sentHistory.remove(historyLimit-1); // remove last message
                             }
                             // send the HUMAN READABLE format to the server
-                            out.println(username + "&" + text);
-                            out.flush();
+                            rollerClient.sendMessageToServer(username + "&" + text);
+                            
                             textField.setText("");
                             historyPointer.setValue(-1);
                         } catch(Exception ex) {
@@ -144,22 +151,7 @@ public class DiceRollerClient {
                 
             });
             
-            frame.setVisible(true);
-            DiceHandCanvas canvas = new DiceHandCanvas();
-            canvas.setSize(400, 270);
-            frame.add(canvas);
-            if (diceImages != null) {
-                canvas.giveDiceImage(diceImages);
-            }
-
-            String msg = null;
-            while ((msg = in.readLine()) != null) {
-                System.out.println("Got something back : " + msg);
-                // clients get the PARSER READ format
-                DiceHand hand = DiceHandParser.translateToDiceHand(msg);
-                canvas.paintHand(hand);
-            }
-            socket.close();  
+            rollerClient.listenToServer();
         } catch(UnknownHostException uhe) {
             JOptionPane.showMessageDialog(null, "Can't find host with IP \"" + ip + "\"", "Invalid IP", JOptionPane.ERROR_MESSAGE);
         } catch(Exception e) {
