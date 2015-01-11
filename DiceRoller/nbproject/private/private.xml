@@ -5,7 +5,7 @@
             <url>src/diceroller/DiceRollerServer.java</url>
             <bookmark id="2">
                 <name/>
-                <line>89</line>
+                <line>35</line>
                 <key/>
             </bookmark>
         </file>
@@ -13,12 +13,17 @@
             <url>src/diceroller/DiceRollerClientHandle.java</url>
             <bookmark id="1">
                 <name/>
-                <line>90</line>
+                <line>34</line>
                 <key/>
             </bookmark>
         </file>
     </editor-bookmarks>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
-        <group/>
+        <group>
+            <file>file:/C:/Users/Jonathon/ProgrammingProjects/GitHub/DiceRoller/DiceRoller/src/diceroller/DiceRoller.java</file>
+            <file>file:/C:/Users/Jonathon/ProgrammingProjects/GitHub/DiceRoller/DiceRoller/src/diceroller/DiceHandParser.java</file>
+            <file>file:/C:/Users/Jonathon/ProgrammingProjects/GitHub/DiceRoller/DiceRoller/src/diceroller/DiceRollerClient.java</file>
+            <file>file:/C:/Users/Jonathon/ProgrammingProjects/GitHub/DiceRoller/DiceRoller/src/diceroller/DiceRollerServer.java</file>
+        </group>
     </open-files>
 </project-private>

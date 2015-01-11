@@ -121,9 +121,13 @@ public class DiceRollerClient {
             if (diceImages != null) {
                 canvas.giveDiceImage(diceImages);
             }
+            System.out.println("About to listen...");
 
             final Client rollerClient = new Client(address, DiceRoller.PORT, 
-                new DiceRollerClientHandle(canvas));
+                 new DiceRollerClientHandle(canvas));
+            System.out.println("Made a client object");
+            rollerClient.listenToServer();
+            System.out.println("connected to the server");
             
             textField.addActionListener(new ActionListener(){
 
@@ -140,7 +144,7 @@ public class DiceRollerClient {
                             }
                             // send the HUMAN READABLE format to the server
                             rollerClient.sendMessageToServer(username + "&" + text);
-                            
+                            System.out.println("Sending a message...");
                             textField.setText("");
                             historyPointer.setValue(-1);
                         } catch(Exception ex) {
@@ -151,7 +155,6 @@ public class DiceRollerClient {
                 
             });
             
-            rollerClient.listenToServer();
         } catch(UnknownHostException uhe) {
             JOptionPane.showMessageDialog(null, "Can't find host with IP \"" + ip + "\"", "Invalid IP", JOptionPane.ERROR_MESSAGE);
         } catch(Exception e) {
