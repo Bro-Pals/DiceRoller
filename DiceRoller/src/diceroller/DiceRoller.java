@@ -51,7 +51,7 @@ public class DiceRoller {
                 @Override
                 public void windowClosing(WindowEvent e) {
                     DiceRoller.print("Stopping the server");
-                    
+                    server.stopServer();
                 }   
             });
             serverFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);

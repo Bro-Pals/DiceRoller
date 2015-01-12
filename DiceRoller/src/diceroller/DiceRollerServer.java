@@ -28,7 +28,9 @@ public class DiceRollerServer implements ServerMessageHandler {
         DiceHand playerHand = DiceHandParser.humanFormatToDiceHand(tokens[1], tokens[0]);
         
         // resend the DiceHand after being parsed back to a string and was rolled
-        String sendOutString = DiceHandParser.translateToString(playerHand);
-        server.broadcastMessage(sendOutString);
+        if (playerHand != null) {
+            String sendOutString = DiceHandParser.translateToString(playerHand);
+            server.broadcastMessage(sendOutString);
+        }
     }
 }

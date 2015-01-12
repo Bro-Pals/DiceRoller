@@ -5,6 +5,7 @@
 package diceroller;
 
 import java.util.ArrayList;
+import java.util.regex.Pattern;
 
 /**
  *
@@ -97,6 +98,17 @@ public class DiceHandParser {
          * Essentially, everything is seperated by + and - signs, but the 
          * first + sign is optional
          */
+        // is not valid if it contains anything that isn't a -, d, +, or number
+        Pattern findPattern = Pattern.compile("[^-d+0-9]");
+        if (Pattern.matches(findPattern.pattern(), rawMsg)) {
+            System.out.println("The input \"" + rawMsg + "\" is not valid input");
+            return null;
+        }
+        
+        if (rawMsg == null) {
+            return null; // no input
+        }
+        
         System.out.println("Parsing the human input: " + rawMsg);
         int totalMod = 0;
         ArrayList<Die> dice = new ArrayList<>();
@@ -106,7 +118,7 @@ public class DiceHandParser {
         String[] elements = rawMsg.split("[+-]"); // split the pluses or minuses
         try {
             for (int i=0; i<elements.length; i++) {
-                if (elements[i].length() == 0) { // skip empty elements
+                if (elements[i] == null || elements[i].length() == 0) { // skip empty elements
                     continue; 
                 }
 
@@ -114,13 +126,17 @@ public class DiceHandParser {
                 if (elements[i].contains("d")) {
                     // this is a dice!   
                     String[] diceParts = elements[i].split("d");
-                    int numDice = 1;
-                    if (diceParts[0].length() > 0) {
-                        numDice = Integer.parseInt(diceParts[0]);
-                    }
-                    int diceSize = Integer.parseInt(diceParts[1]);
-                    for (int times=0; times<numDice; times++) {
-                        dice.add(new Die(diceSize, !negative)); // make and roll a new dice
+                    if (diceParts.length >= 1 && diceParts[0] != null && 
+                            diceParts[1] != null && diceParts[1].length() > 0) {
+                        
+                        int numDice = 1; // default if there is no first parameter
+                        if (diceParts[0].length() > 0) {
+                            numDice = Integer.parseInt(diceParts[0]);
+                        }
+                        int diceSize = Integer.parseInt(diceParts[1]);
+                        for (int times=0; times<numDice; times++) {
+                            dice.add(new Die(diceSize, !negative)); // make and roll a new dice
+                        }
                     }
                 } else {
                     // this is a modifier!

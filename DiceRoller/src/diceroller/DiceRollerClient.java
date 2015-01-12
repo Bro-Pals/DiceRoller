@@ -64,22 +64,10 @@ public class DiceRollerClient {
             final CountWrapper historyPointer = new CountWrapper(-1); // point to which last message you're on
             final ArrayList<String> sentHistory = new ArrayList<>();
             
-            JFrame frame = new JFrame();
+            final JFrame frame = new JFrame();
             frame.setSize(550, 400);
             frame.setTitle("Dice Roller Client | " + username);
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-            frame.addWindowListener(new WindowAdapter(){
-                @Override
-                public void windowClosing(WindowEvent e) {
-                    super.windowClosing(e); //To change body of generated methods, choose Tools | Templates.
-                    try {
-                        // stop the server?
-                    } catch(Exception ex) {
-                        System.err.println("Error when closing the window: " + ex.toString());
-                    }
-                }
-                
-            });
             
             final JTextField textField = new JTextField();
             textField.setPreferredSize(new Dimension(400, 30));
@@ -132,8 +120,9 @@ public class DiceRollerClient {
                     if (rollerClient != null) {
                         try {
                             // garuntee no |s will be there beforehand
-                            String text = textField.getText().replace("&", "");
+                            String text = textField.getText().replaceAll("&", " ");
                             text = text.replace(" ", ""); // no spaces allowed
+                            
                             sentHistory.add(0, text);
                             if (sentHistory.size() > historyLimit) {
                                 sentHistory.remove(historyLimit-1); // remove last message
@@ -146,6 +135,21 @@ public class DiceRollerClient {
                         } catch(Exception ex) {
                             System.err.println("Exception when sending output to the server: " + ex.toString());
                         }
+                    }
+                }
+                
+            });
+            
+            frame.addWindowListener(new WindowAdapter(){
+                @Override
+                public void windowClosing(WindowEvent e) {
+                    super.windowClosing(e);
+                    try {
+                        // stop the server?
+                        System.out.println("Closing");
+                        rollerClient.closeClient();
+                    } catch(Exception ex) {
+                        System.err.println("Error when closing the window: " + ex.toString());
                     }
                 }
                 
