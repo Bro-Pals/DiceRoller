@@ -5,7 +5,11 @@
             <url>src/diceroller/DiceRollerServer.java</url>
             <bookmark id="2">
                 <name/>
+<<<<<<< HEAD
                 <line>22</line>
+=======
+                <line>35</line>
+>>>>>>> c06d1701f16e2793e056dc94e7daf0f309b04d1e
                 <key/>
             </bookmark>
         </file>
@@ -13,17 +17,28 @@
             <url>src/diceroller/DiceRollerClientHandle.java</url>
             <bookmark id="1">
                 <name/>
+<<<<<<< HEAD
                 <line>31</line>
+=======
+                <line>34</line>
+>>>>>>> c06d1701f16e2793e056dc94e7daf0f309b04d1e
                 <key/>
             </bookmark>
         </file>
     </editor-bookmarks>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
+<<<<<<< HEAD
             <file>file:/C:/Users/Owner/Documents/GitHub/DiceRoller/DiceRoller/src/diceroller/DiceRoller.java</file>
             <file>file:/C:/Users/Owner/Documents/GitHub/DiceRoller/DiceRoller/src/diceroller/DiceHandParser.java</file>
             <file>file:/C:/Users/Owner/Documents/GitHub/DiceRoller/DiceRoller/src/diceroller/DiceRollerClient.java</file>
             <file>file:/C:/Users/Owner/Documents/GitHub/DiceRoller/DiceRoller/src/diceroller/DiceRollerClientHandle.java</file>
+=======
+            <file>file:/C:/Users/Jonathon/ProgrammingProjects/GitHub/DiceRoller/DiceRoller/src/diceroller/DiceRoller.java</file>
+            <file>file:/C:/Users/Jonathon/ProgrammingProjects/GitHub/DiceRoller/DiceRoller/src/diceroller/DiceHandParser.java</file>
+            <file>file:/C:/Users/Jonathon/ProgrammingProjects/GitHub/DiceRoller/DiceRoller/src/diceroller/DiceRollerClient.java</file>
+            <file>file:/C:/Users/Jonathon/ProgrammingProjects/GitHub/DiceRoller/DiceRoller/src/diceroller/DiceRollerServer.java</file>
+>>>>>>> c06d1701f16e2793e056dc94e7daf0f309b04d1e
         </group>
     </open-files>
 </project-private>

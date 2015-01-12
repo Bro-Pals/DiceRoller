@@ -25,6 +25,7 @@ public class DiceRollerClientHandle implements ClientMessageHandler {
     
     @Override
     public void handleMessage(Client client, String string) {
+        System.out.println("We got a message from the server: " + string);
         // display hands the client gets
         DiceHand hand = DiceHandParser.translateToDiceHand(string);
         canvas.paintHand(hand);
