@@ -63,7 +63,6 @@ public class DiceRoller {
             DiceRoller.print("Created server");
             DiceRoller.print("Port forward to this computer on port " + PORT);
             server.startServer();
-            System.out.println("Done listening");
         } catch(Exception e) {
             DiceRoller.printErr("Exception in the main class; " + e.toString());
         }

@@ -23,9 +23,9 @@ public class DiceRollerServer implements ServerMessageHandler {
 
     @Override
     public void handleMessage(Server server, ClientHandler ch, String string) {
-        System.out.println("Got a message: " + string);
         // turn the input into a dice hand
         String[] tokens = string.split("&");
+        DiceRoller.print("Sent by " + tokens[0] + ": " + tokens[1]);
         DiceHand playerHand = DiceHandParser.humanFormatToDiceHand(tokens[1], tokens[0]);
         
         // resend the DiceHand after being parsed back to a string and was rolled

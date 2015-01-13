@@ -5,6 +5,8 @@
 package diceroller;
 
 import bropals.lib.simplegame.networking.Client;
+import bropals.lib.simplegame.util.AssetBank;
+import bropals.lib.simplegame.util.AssetLoader;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
@@ -15,6 +17,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -36,13 +39,16 @@ import javax.swing.JTextField;
 public class DiceRollerClient {
     
     public static void main(String[] args) {
-        BufferedImage diceImages = null;
+        AssetBank bank = new AssetBank();
         try {
-            diceImages = (BufferedImage) ImageIO.read(DiceRollerClient.class.getResourceAsStream("../img/dice.png"));
+            AssetLoader loader = new AssetLoader(new File("img"));
+            loader.loadBufferedImage("dice.png", "dice", bank);
         } catch(Exception e) {
             System.out.println("Error when getting the dice images");
+            e.printStackTrace();
         }
-        String ip = JOptionPane.showInputDialog(null, "Enter IP Address of server", "Need IP Address", JOptionPane.PLAIN_MESSAGE);
+        String ip = JOptionPane.showInputDialog(null, "Enter IP Address of server", 
+                "Need IP Address", JOptionPane.PLAIN_MESSAGE);
         try {
             InetAddress address = InetAddress.getByName(ip);
             
@@ -66,7 +72,7 @@ public class DiceRollerClient {
             
             final JFrame frame = new JFrame();
             frame.setSize(550, 400);
-            frame.setTitle("Dice Roller Client | " + username);
+            frame.setTitle("Dice Roller Client | " + username + " | Connecting...");
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             
             final JTextField textField = new JTextField();
@@ -106,17 +112,17 @@ public class DiceRollerClient {
             DiceHandCanvas canvas = new DiceHandCanvas();
             canvas.setSize(400, 270);
             frame.add(canvas);
-            if (diceImages != null) {
-                canvas.giveDiceImage(diceImages);
+            if (bank.getImage("dice") != null) {
+                canvas.giveDiceImage(bank.getImage("dice"));
             }
-            System.out.println("About to listen...");
+            System.out.println("About to make a client object");
 
             final Client rollerClient = new Client(address, DiceRoller.PORT, 
                  new DiceRollerClientHandle(canvas));
             System.out.println("Made a client object");
-            rollerClient.listenToServer();
-            System.out.println("connected to the server");
-            
+            frame.setTitle("Dice Roller Client | " + username + " | Connected to "
+             + " " + rollerClient.getAddress().getHostAddress());
+
             textField.addActionListener(new ActionListener(){
 
                 @Override
@@ -149,9 +155,8 @@ public class DiceRollerClient {
                 public void windowClosing(WindowEvent e) {
                     super.windowClosing(e);
                     try {
-                        // stop the server?
-                        System.out.println("Closing");
-                        rollerClient.closeClient();
+                        if (rollerClient != null)
+                            rollerClient.closeClient();
                     } catch(Exception ex) {
                         System.err.println("Error when closing the window: " + ex.toString());
                     }
@@ -160,10 +165,12 @@ public class DiceRollerClient {
             });
             
             rollerClient.listenToServer();
+            System.out.println("Listeneing to the server");
         } catch(UnknownHostException uhe) {
             JOptionPane.showMessageDialog(null, "Can't find host with IP \"" + ip + "\"", "Invalid IP", JOptionPane.ERROR_MESSAGE);
         } catch(Exception e) {
             System.err.println("Exception in the main class: " + e.toString());
+            e.printStackTrace();
         }
     }
 }
